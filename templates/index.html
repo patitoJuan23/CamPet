@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Campet - Interpretación del Lenguaje Corporal Canino{% endblock %}
+
+{% block content %}
+<!-- Tarjeta Principal de Bienvenida -->
+<div class="card-box hero-card">
+    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Campet Logo" class="hero-logo-large">
+    <h1 class="hero-title">Campet</h1>
+    <p class="hero-subtitle">
+        Descubre lo que transmite la postura, orejas y mirada de tu perro a través de Inteligencia Artificial con visión computacional.
+    </p>
+
+    <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 20px;">
+        <a href="{{ url_for('analyze_page') }}" class="btn-primary">
+            <i class="fa-solid fa-camera"></i> Analizar fotografía
+        </a>
+
+        <a href="{{ url_for('how_it_works') }}" class="btn-secondary">
+            <i class="fa-solid fa-circle-info"></i> ¿Cómo funciona?
+        </a>
+    </div>
+</div>
+
+<!-- Sección de Demostración Rápida -->
+<div class="card-box">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+        <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-main);">
+            <i class="fa-solid fa-bolt" style="color: var(--primary);"></i> Prueba rápida de muestra
+        </h3>
+        <span style="font-size: 0.75rem; color: var(--text-muted);">Haz clic para probar</span>
+    </div>
+    
+    <div class="sample-grid">
+        <div class="sample-card" onclick="selectQuickSample('sample1')">
+            <img src="{{ url_for('static', filename='images/sample1.jpg') }}" alt="Muestra Perro Alerta" class="sample-thumb">
+            <div class="sample-label">🐶 Cachorro Alerta</div>
+        </div>
+        <div class="sample-card" onclick="selectQuickSample('sample2')">
+            <img src="{{ url_for('static', filename='images/sample2.jpg') }}" alt="Muestra Perro Relajado" class="sample-thumb">
+            <div class="sample-label">🐕 Perro Relajado</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tarjeta "Próximamente: Análisis de Vídeo" -->
+<div class="video-coming-card">
+    <span class="badge-coming">Próximamente</span>
+    <div style="font-size: 2.2rem; color: var(--text-muted); margin-bottom: 8px;">
+        <i class="fa-solid fa-video"></i>
+    </div>
+    <h4 style="font-size: 1rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px;">
+        Análisis de vídeo
+    </h4>
+    <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
+        Estamos trabajando en la interpretación continua mediante secuencias de vídeo. ¡Disponible en la próxima versión!
+    </p>
+</div>
+
+<!-- Formulario Oculto para Prueba Rápida -->
+<form id="quickSampleForm" action="{{ url_for('process_analysis') }}" method="POST" style="display: none;">
+    <input type="hidden" name="sample_name" id="quickSampleInput">
+</form>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function selectQuickSample(sampleName) {
+    window.location.href = "{{ url_for('analyze_page') }}?sample=" + sampleName;
+}
+</script>
+{% endblock %}

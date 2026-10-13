@@ -1,0 +1,323 @@
+{% extends "base.html" %}
+
+{% block title %}Analizar Fotografía - Campet{% endblock %}
+
+{% block content %}
+<div class="card-box" id="uploadSection">
+    <div style="text-align: center; margin-bottom: 20px;">
+        <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-main); margin-bottom: 6px;">
+            Analizar Fotografía
+        </h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">
+            Sube o toma una foto donde se aprecie claramente la postura o cabeza de tu perro.
+        </p>
+    </div>
+
+    <!-- Zona Dropzone de Carga -->
+    <div class="upload-dropzone" id="dropzone" onclick="triggerFileInput()">
+        <div class="upload-icon">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+        </div>
+        <h4 style="font-size: 1rem; font-weight: 700; color: var(--primary); margin-bottom: 4px;">
+            Seleccionar o tomar fotografía
+        </h4>
+        <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 14px;">
+            Formatos soportados: JPG, JPEG, PNG, WEBP (Máx 10 MB)
+        </p>
+
+        <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+            <span class="btn-outline" style="font-size: 0.8rem; padding: 6px 14px; background: #ffffff;">
+                <i class="fa-solid fa-images"></i> Galerías / Archivos
+            </span>
+            <span class="btn-outline" style="font-size: 0.8rem; padding: 6px 14px; background: #ffffff;">
+                <i class="fa-solid fa-camera"></i> Tomar foto
+            </span>
+        </div>
+    </div>
+
+    <!-- Input real de archivo (oculto) -->
+    <input type="file" id="photoInput" accept="image/jpeg, image/jpg, image/png, image/webp" capture="environment" style="display: none;" onchange="handleFileSelected(this.files[0])">
+
+    <!-- Vista Previa de la Fotografía -->
+    <div id="previewContainer" class="preview-container" style="display: none; margin-top: 20px;">
+        <img id="previewImg" class="preview-img" src="" alt="Vista previa del perro">
+        <div class="preview-actions">
+            <button type="button" class="btn-secondary" onclick="triggerFileInput()" style="flex: 1;">
+                <i class="fa-solid fa-rotate"></i> Cambiar imagen
+            </button>
+            <button type="button" class="btn-outline" onclick="resetImageSelection()" style="color: #e74c3c; border-color: #f5b7b1;">
+                <i class="fa-solid fa-trash"></i> Eliminar
+            </button>
+        </div>
+    </div>
+
+    <!-- Botón Principal de Acción -->
+    <div style="margin-top: 24px;">
+        <button id="analyzeBtn" type="button" class="btn-primary" onclick="startAnalysis()" disabled>
+            <i class="fa-solid fa-microchip"></i> Analizar Fotografía con IA
+        </button>
+    </div>
+</div>
+
+<!-- Muestras de prueba para clase / evaluación sin foto propia -->
+<div class="card-box">
+    <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--text-main); margin-bottom: 10px;">
+        <i class="fa-solid fa-lightbulb" style="color: #f1c40f;"></i> ¿Sin foto a la mano? Prueba con estas:
+    </h4>
+    <div class="sample-grid">
+        <div class="sample-card" onclick="loadSampleImage('sample1')">
+            <img src="{{ url_for('static', filename='images/sample1.jpg') }}" class="sample-thumb" alt="Muestra Alerta">
+            <div class="sample-label">Ejemplo: Alerta</div>
+        </div>
+        <div class="sample-card" onclick="loadSampleImage('sample2')">
+            <img src="{{ url_for('static', filename='images/sample2.jpg') }}" class="sample-thumb" alt="Muestra Relajado">
+            <div class="sample-label">Ejemplo: Relajado</div>
+        </div>
+    </div>
+</div>
+
+<!-- Overlay de Carga Animado -->
+<div id="loadingOverlay" class="loading-overlay">
+    <div class="paw-spinner">
+        <i class="fa-solid fa-paw"></i>
+    </div>
+    <div id="loadingStepText" class="loading-step-text">
+        Iniciando visión artificial...
+    </div>
+    <p style="font-size: 0.85rem; color: var(--text-muted); max-width: 280px; margin-top: 6px;">
+        Evaluando postura corporal, orejas, inclinación de cabeza y expresión...
+    </p>
+</div>
+
+<!-- Vista de Resultados (Oculto inicialmente) -->
+<div id="resultContainer" style="display: none;">
+    <!-- Se llena dinámicamente con JS -->
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let selectedFile = null;
+let selectedSampleName = null;
+
+// Cargar muestra si viene por parámetro URL ?sample=
+document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const sampleParam = urlParams.get('sample');
+    if (sampleParam) {
+        loadSampleImage(sampleParam);
+    }
+});
+
+function triggerFileInput() {
+    document.getElementById('photoInput').click();
+}
+
+function handleFileSelected(file) {
+    if (!file) return;
+    
+    selectedFile = file;
+    selectedSampleName = null;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        document.getElementById('previewImg').src = e.target.result;
+        document.getElementById('previewContainer').style.display = 'block';
+        document.getElementById('dropzone').style.display = 'none';
+        document.getElementById('analyzeBtn').disabled = false;
+    };
+    reader.readAsDataURL(file);
+}
+
+function loadSampleImage(sampleName) {
+    selectedFile = null;
+    selectedSampleName = sampleName;
+    
+    document.getElementById('previewImg').src = `/static/images/${sampleName}.jpg`;
+    document.getElementById('previewContainer').style.display = 'block';
+    document.getElementById('dropzone').style.display = 'none';
+    document.getElementById('analyzeBtn').disabled = false;
+}
+
+function resetImageSelection() {
+    selectedFile = null;
+    selectedSampleName = null;
+    document.getElementById('photoInput').value = '';
+    document.getElementById('previewContainer').style.display = 'none';
+    document.getElementById('dropzone').style.display = 'block';
+    document.getElementById('analyzeBtn').disabled = true;
+}
+
+async function startAnalysis() {
+    if (!selectedFile && !selectedSampleName) return;
+
+    const overlay = document.getElementById('loadingOverlay');
+    const stepText = document.getElementById('loadingStepText');
+    overlay.classList.add('active');
+
+    const steps = [
+        "Detectando silueta del perro...",
+        "Analizando inclinación de orejas...",
+        "Evaluando postura y mirada...",
+        "Sintetizando observaciones con IA..."
+    ];
+    let currentStep = 0;
+    const interval = setInterval(() => {
+        if (currentStep < steps.length) {
+            stepText.textContent = steps[currentStep];
+            currentStep++;
+        }
+    }, 700);
+
+    const formData = new FormData();
+    if (selectedFile) {
+        formData.append('photo', selectedFile);
+    } else if (selectedSampleName) {
+        formData.append('sample_name', selectedSampleName);
+    }
+
+    try {
+        const response = await fetch('/api/analyze', {
+            method: 'POST',
+            body: formData
+        });
+        const result = await response.json();
+        clearInterval(interval);
+        overlay.classList.remove('active');
+
+        if (result.success) {
+            renderResults(result.data);
+            // Guardar en el historial local del navegador
+            saveToLocalHistory(result.data);
+        } else {
+            alert("Error en el análisis: " + (result.error || "Ocurrió un problema procesando la imagen."));
+        }
+    } catch (err) {
+        clearInterval(interval);
+        overlay.classList.remove('active');
+        alert("Error de conexión al procesar el análisis.");
+    }
+}
+
+function renderResults(data) {
+    document.getElementById('uploadSection').style.display = 'none';
+    document.querySelector('.card-box:nth-child(2)').style.display = 'none'; // ocultar muestras
+
+    const confClass = data.confidence.toLowerCase() === 'alto' ? 'conf-alto' : 
+                     (data.confidence.toLowerCase() === 'moderado' ? 'conf-moderado' : 'conf-bajo');
+
+    const signals = data.signals || {};
+
+    let html = `
+        <div class="result-header-card">
+            <img src="${data.image_url}" class="result-photo" alt="Fotografía del perro">
+            <div class="result-state-badge">
+                <div>
+                    <div class="state-title">Posible Estado Observado</div>
+                    <div class="state-name">${data.state}</div>
+                </div>
+                <span class="confidence-tag ${confClass}">
+                    Confianza: ${data.confidence}
+                </span>
+            </div>
+        </div>
+
+        ${data.is_demo ? `
+            <div style="background: #eef2ff; border: 1.5px solid #c7d2fe; color: #4338ca; border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 16px; font-size: 0.82rem; display: flex; align-items: center; gap: 10px;">
+                <i class="fa-solid fa-wand-magic-sparkles" style="font-size: 1.2rem;"></i>
+                <div>
+                    <strong>Modo DEMO (Simulación Activa)</strong><br>
+                    Resultado generado mediante simulación de visión artificial para demostración.
+                </div>
+            </div>
+        ` : ''}
+
+        <div class="card-box">
+            <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-eye" style="color: var(--primary);"></i> Señales Visibles Observadas
+            </h3>
+
+            <div class="signals-grid">
+                <div class="signal-item">
+                    <div class="signal-part"><i class="fa-solid fa-ear-listen" style="color: var(--primary);"></i> Orejas:</div>
+                    <div class="signal-desc">${signals.ears || 'No visible'}</div>
+                </div>
+                <div class="signal-item">
+                    <div class="signal-part"><i class="fa-solid fa-dog" style="color: var(--primary);"></i> Postura Corporal:</div>
+                    <div class="signal-desc">${signals.posture || 'No visible'}</div>
+                </div>
+                <div class="signal-item">
+                    <div class="signal-part"><i class="fa-solid fa-heading" style="color: var(--primary);"></i> Posición de Cabeza:</div>
+                    <div class="signal-desc">${signals.head || 'No visible'}</div>
+                </div>
+                <div class="signal-item">
+                    <div class="signal-part"><i class="fa-solid fa-eye-low-vision" style="color: var(--primary);"></i> Mirada:</div>
+                    <div class="signal-desc">${signals.gaze || 'No visible'}</div>
+                </div>
+                <div class="signal-item">
+                    <div class="signal-part"><i class="fa-solid fa-face-smile" style="color: var(--primary);"></i> Expresión:</div>
+                    <div class="signal-desc">${signals.expression || 'No visible'}</div>
+                </div>
+                <div class="signal-item">
+                    <div class="signal-part"><i class="fa-solid fa-feather" style="color: var(--primary);"></i> Cola:</div>
+                    <div class="signal-desc">${signals.tail || 'No visible'}</div>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #eee;">
+                <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--text-main); margin-bottom: 6px;">
+                    <i class="fa-solid fa-brain" style="color: var(--secondary);"></i> Explicación del Análisis
+                </h4>
+                <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.55;">
+                    "${data.interpretation}"
+                </p>
+            </div>
+        </div>
+
+        ${data.vet_recommendation ? `
+            <div style="background: #fdf2f2; border: 1.5px solid #f87171; color: #991b1b; border-radius: var(--radius-md); padding: 14px 16px; margin-bottom: 16px; font-size: 0.85rem;">
+                <i class="fa-solid fa-user-doctor"></i> <strong>Recomendación Veterinaria:</strong> Se observan posibles signos de malestar o inquietud. Si persiste o notas cambios en su comportamiento, te sugerimos consultar a un médico veterinario.
+            </div>
+        ` : ''}
+
+        <!-- Advertencia Importante -->
+        <div class="disclaimer-box">
+            <div class="disclaimer-icon">
+                <i class="fa-solid fa-shield-cat"></i>
+            </div>
+            <div class="disclaimer-text">
+                <strong>Nota Importante:</strong><br>
+                ${data.disclaimer}
+            </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 24px;">
+            <a href="/analyze" class="btn-primary">
+                <i class="fa-solid fa-plus"></i> Analizar otra fotografía
+            </a>
+            <a href="/history" class="btn-secondary">
+                <i class="fa-solid fa-clock-rotate-left"></i> Ver en Mis Análisis
+            </a>
+        </div>
+    `;
+
+    const resContainer = document.getElementById('resultContainer');
+    resContainer.innerHTML = html;
+    resContainer.style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function saveToLocalHistory(item) {
+    try {
+        let history = JSON.parse(localStorage.getItem('campet_history') || '[]');
+        history.unshift(item);
+        // Guardar hasta 20 análisis recientes
+        if (history.length > 20) history = history.slice(0, 20);
+        localStorage.setItem('campet_history', JSON.stringify(history));
+    } catch (e) {
+        console.error("No se pudo guardar en LocalStorage:", e);
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Mis Análisis - Campet{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+    <div>
+        <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-main);">Mis Análisis</h2>
+        <p style="font-size: 0.8rem; color: var(--text-muted);">Historial de consultas durante esta sesión</p>
+    </div>
+    <button id="clearHistoryBtn" onclick="clearHistory()" class="btn-outline" style="font-size: 0.75rem; padding: 6px 12px; color: #e74c3c; border-color: #fadbd8; display: none;">
+        <i class="fa-solid fa-trash-can"></i> Limpiar
+    </button>
+</div>
+
+<!-- Lista de Historial -->
+<div id="historyListContainer">
+    <!-- Se llena por JavaScript -->
+</div>
+
+<!-- Empty State -->
+<div id="emptyHistoryState" class="card-box" style="text-align: center; padding: 40px 20px; display: none;">
+    <div style="font-size: 3rem; color: var(--primary-light); margin-bottom: 12px;">
+        <i class="fa-solid fa-folder-open" style="color: var(--accent);"></i>
+    </div>
+    <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin-bottom: 6px;">
+        Aún no tienes análisis guardados
+    </h3>
+    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5;">
+        Realiza tu primer análisis fotografiando a tu perro para consultar aquí los resultados.
+    </p>
+    <a href="{{ url_for('analyze_page') }}" class="btn-primary" style="display: inline-flex; width: auto; padding: 12px 24px;">
+        <i class="fa-solid fa-camera"></i> Realizar un Análisis
+    </a>
+</div>
+
+<!-- Modal para ver detalle completo de un elemento del historial -->
+<div id="historyModal" class="loading-overlay" style="background: rgba(0,0,0,0.6);">
+    <div class="card-box" style="width: 100%; max-width: 440px; max-height: 85vh; overflow-y: auto; text-align: left; position: relative;">
+        <button onclick="closeHistoryModal()" style="position: absolute; top: 16px; right: 16px; background: #f1f3f5; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1rem;">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div id="historyModalContent">
+            <!-- Contenido dinámico -->
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', loadHistoryItems);
+
+function loadHistoryItems() {
+    const container = document.getElementById('historyListContainer');
+    const emptyState = document.getElementById('emptyHistoryState');
+    const clearBtn = document.getElementById('clearHistoryBtn');
+    
+    let history = [];
+    try {
+        history = JSON.parse(localStorage.getItem('campet_history') || '[]');
+    } catch (e) {
+        history = [];
+    }
+
+    if (!history || history.length === 0) {
+        container.innerHTML = '';
+        emptyState.style.display = 'block';
+        clearBtn.style.display = 'none';
+        return;
+    }
+
+    emptyState.style.display = 'none';
+    clearBtn.style.display = 'inline-flex';
+
+    let html = '';
+    history.forEach((item, index) => {
+        html += `
+            <div class="history-item" onclick="openHistoryDetail(${index})" style="cursor: pointer;">
+                <img src="${item.image_url}" class="history-thumb" alt="Foto">
+                <div class="history-info">
+                    <div class="history-date"><i class="fa-regular fa-clock"></i> ${item.timestamp}</div>
+                    <div class="history-state">${item.state}</div>
+                    <div class="history-desc">${item.interpretation}</div>
+                </div>
+                <div style="font-size: 1.1rem; color: var(--primary);">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+function openHistoryDetail(index) {
+    let history = JSON.parse(localStorage.getItem('campet_history') || '[]');
+    const item = history[index];
+    if (!item) return;
+
+    const modalContent = document.getElementById('historyModalContent');
+    const signals = item.signals || {};
+
+    modalContent.innerHTML = `
+        <img src="${item.image_url}" style="width: 100%; height: 200px; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 14px;" alt="Perro">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--primary);">${item.state}</h3>
+            <span class="confidence-tag conf-alto" style="font-size: 0.7rem;">Confianza: ${item.confidence}</span>
+        </div>
+        <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 14px;"><i class="fa-regular fa-calendar"></i> ${item.timestamp}</p>
+        
+        <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">Señales Observadas:</h4>
+        <ul style="font-size: 0.85rem; color: var(--text-muted); padding-left: 18px; margin-bottom: 14px; line-height: 1.5;">
+            <li><strong>Orejas:</strong> ${signals.ears || 'No visible'}</li>
+            <li><strong>Postura:</strong> ${signals.posture || 'No visible'}</li>
+            <li><strong>Cabeza:</strong> ${signals.head || 'No visible'}</li>
+            <li><strong>Mirada:</strong> ${signals.gaze || 'No visible'}</li>
+        </ul>
+
+        <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">Interpretación:</h4>
+        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">"${item.interpretation}"</p>
+
+        <div style="background: #fff8eb; padding: 10px; border-radius: 8px; font-size: 0.75rem; color: #7f8c8d;">
+            ${item.disclaimer}
+        </div>
+    `;
+
+    document.getElementById('historyModal').style.display = 'flex';
+}
+
+function closeHistoryModal() {
+    document.getElementById('historyModal').style.display = 'none';
+}
+
+function clearHistory() {
+    if (confirm('¿Deseas eliminar todo tu historial de análisis?')) {
+        localStorage.removeItem('campet_history');
+        loadHistoryItems();
+    }
+}
+</script>
+{% endblock %}

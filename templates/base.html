@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{% block title %}Campet - Análisis de Lenguaje Corporal Canino con IA{% endblock %}</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Campet es una aplicación inteligente que analiza las señales visibles del lenguaje corporal de tu perro o cachorro ofreciendo una interpretación orientativa.">
+    <meta name="theme-color" content="#ff5c8d">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+    <!-- Favicon & Iconos -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo.png') }}">
+    
+    <!-- FontAwesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Estilos de Campet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- App Shell Mobile Layout -->
+    <div class="app-shell">
+        
+        <!-- Header Principal -->
+        <header class="app-header">
+            <a href="{{ url_for('index') }}" class="brand-wrapper">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Campet Logo" class="app-logo-img">
+                <span class="app-title-text">Campet</span>
+            </a>
+            
+            <div class="demo-pill" title="Aplicación lista con IA y modo DEMO para demostración escolar">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> IA / DEMO
+            </div>
+        </header>
+
+        <!-- Área de Contenido Dinámico -->
+        <main class="app-content">
+            {% block content %}{% endblock %}
+        </main>
+
+        <!-- Navegación Inferior (Mobile Nav) -->
+        <nav class="app-nav">
+            <a href="{{ url_for('index') }}" class="nav-item {% if request.endpoint == 'index' %}active{% endif %}">
+                <i class="fa-solid fa-house"></i>
+                <span>Inicio</span>
+            </a>
+            <a href="{{ url_for('analyze_page') }}" class="nav-item {% if request.endpoint == 'analyze_page' %}active{% endif %}">
+                <i class="fa-solid fa-camera-retro"></i>
+                <span>Analizar</span>
+            </a>
+            <a href="{{ url_for('history') }}" class="nav-item {% if request.endpoint == 'history' %}active{% endif %}">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span>Mis Análisis</span>
+            </a>
+            <a href="{{ url_for('how_it_works') }}" class="nav-item {% if request.endpoint == 'how_it_works' %}active{% endif %}">
+                <i class="fa-solid fa-circle-question"></i>
+                <span>Ayuda</span>
+            </a>
+        </nav>
+
+    </div>
+
+    <!-- Scripts JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

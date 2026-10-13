@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}¿Cómo funciona? - Campet{% endblock %}
+
+{% block content %}
+<div class="card-box" style="text-align: center; padding: 24px 20px;">
+    <div style="width: 60px; height: 60px; background: var(--primary-light); color: var(--primary); border-radius: var(--radius-md); display: inline-flex; align-items: center; justify-content: center; font-size: 1.8rem; margin-bottom: 12px;">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+    </div>
+    <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-main); margin-bottom: 6px;">
+        ¿Cómo funciona Campet?
+    </h2>
+    <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+        Conoce el proceso paso a paso que realiza nuestra Inteligencia Artificial para interpretar las señales corporales visibles de tu mascota.
+    </p>
+</div>
+
+<!-- Pasos 1, 2, 3 -->
+<div style="display: flex; flex-direction: column; gap: 14px;">
+    
+    <div class="card-box" style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 0;">
+        <div style="background: var(--primary); color: #ffffff; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; font-size: 1rem;">
+            1
+        </div>
+        <div>
+            <h3 style="font-size: 1rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px;">
+                Subes una fotografía
+            </h3>
+            <p style="font-size: 0.84rem; color: var(--text-muted); line-height: 1.45;">
+                Seleccionas o tomas una foto clara desde tu celular o computadora en formato JPG, PNG o WEBP.
+            </p>
+        </div>
+    </div>
+
+    <div class="card-box" style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 0;">
+        <div style="background: var(--secondary); color: #ffffff; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; font-size: 1rem;">
+            2
+        </div>
+        <div>
+            <h3 style="font-size: 1rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px;">
+                La IA analiza señales visibles
+            </h3>
+            <p style="font-size: 0.84rem; color: var(--text-muted); line-height: 1.45;">
+                Nuestros modelos de visión computacional examinan la inclinación de las orejas, postura, cabeza y mirada. Si un rasgo no es visible, se marca como <em>"No visible"</em>.
+            </p>
+        </div>
+    </div>
+
+    <div class="card-box" style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 0;">
+        <div style="background: var(--accent); color: #ffffff; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; font-size: 1rem;">
+            3
+        </div>
+        <div>
+            <h3 style="font-size: 1rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px;">
+                Resultado e Interpretación
+            </h3>
+            <p style="font-size: 0.84rem; color: var(--text-muted); line-height: 1.45;">
+                Recibes un reporte con el posible estado (alerta, relajación, juego), las observaciones encontradas y una explicación orientativa prudente.
+            </p>
+        </div>
+    </div>
+
+</div>
+
+<!-- Consejos para tomar mejores fotos -->
+<div class="card-box" style="margin-top: 20px; background: #fdf6f8; border-color: rgba(255, 92, 141, 0.2);">
+    <h3 style="font-size: 1rem; font-weight: 800; color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+        <i class="fa-solid fa-camera-rotate"></i> Recomendaciones para mejores fotos
+    </h3>
+    <ul style="font-size: 0.84rem; color: var(--text-muted); padding-left: 18px; line-height: 1.6;">
+        <li>Asegúrate de contar con buena iluminación natural.</li>
+        <li>Procura encuadrar la cabeza u orejas de tu perro claramente.</li>
+        <li>Evita fotos borrosas o tomadas a excesiva distancia.</li>
+        <li>Recuerda que esta herramienta es orientativa y no sustituye la consulta médica de un veterinario.</li>
+    </ul>
+</div>
+
+<div style="margin-top: 20px; text-align: center;">
+    <a href="{{ url_for('analyze_page') }}" class="btn-primary">
+        <i class="fa-solid fa-camera"></i> Probar Campet Ahora
+    </a>
+</div>
+{% endblock %}
